@@ -16,3 +16,5 @@ How to use binary:
   3.1) or CLI way "sudo raspi-config": https://photos.app.goo.gl/wfoPd8CNLSlJ0bF83
 4) Run the program "sudo /home/pi/Downloads/NixieClockRaspberryPi-master/Bin/DisplayNixie clock" : 
 https://photos.google.com/album/AF1QipPrdCjy8WkSl1f51m8EP9go7VUFAiGsy_bjW9pH/photo/AF1QipPch7Yz6RWZKBhiU_U8SIZtXHFvxyfVzh27Byjp
+
+Step-by-Step video: https://youtu.be/-58clsFwA3I
