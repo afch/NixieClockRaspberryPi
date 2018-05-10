@@ -18,3 +18,8 @@ How to use binary:
 https://photos.google.com/album/AF1QipPrdCjy8WkSl1f51m8EP9go7VUFAiGsy_bjW9pH/photo/AF1QipPch7Yz6RWZKBhiU_U8SIZtXHFvxyfVzh27Byjp
 
 Step-by-Step video: https://youtu.be/-58clsFwA3I
+
+Сommand line options:
+1) 123456 - any 6 digits. Shield will display these numbers.
+2) now - Shield will display current time at the time the command is executed.
+3) clock - the program will loop and will update every second of the current time on the tubes.
