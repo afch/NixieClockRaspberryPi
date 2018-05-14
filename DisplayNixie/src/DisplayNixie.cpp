@@ -26,11 +26,13 @@ int main(int argc, char* argv[]) {
 
 	if (wiringPiSPISetupMode (0, 2000000, 2)) printf("SPI ok");
 			else {printf("SPI NOT ok"); return 0;}
+	//char* _argv;
+	//String _stringToDisplay=argv[1];
 	char _stringToDisplay[8];
 	bool clock=0;
 
 	do {
-	if (!strcmp(argv[1],"now")) 
+	if (!strcmp(argv[1],"now")) //printf("NOWW"); else printf("NOTTT NOWW");
 	{
 		time_t seconds=time(NULL);
 		tm* timeinfo=localtime(&seconds);
@@ -38,7 +40,7 @@ int main(int argc, char* argv[]) {
 		strftime(_stringToDisplay, 8, format, timeinfo);
 	}
 
-	else if (!strcmp(argv[1],"clock")) 
+	else if (!strcmp(argv[1],"clock")) //printf("NOWW"); else printf("NOTTT NOWW");
 	{
 		time_t seconds=time(NULL);
 		tm* timeinfo=localtime(&seconds);
