@@ -24,9 +24,8 @@ https://photos.google.com/album/AF1QipPrdCjy8WkSl1f51m8EP9go7VUFAiGsy_bjW9pH/pho
 2) now - Shield will display current time at the time the command is executed.
 3) clock - the program will loop and will update every second of the current time on the tubes.
 
-
-    To compile:
-    
+        To compile the source: 
+        
 Add folder "DisplayNixie" into the workspace of Eclipse:
 "File"->"Import", "Genral"->"Existing Project into Workspce".
 p.s. The project uses the "wiringPi" library: http://wiringpi.com/download-and-install/
