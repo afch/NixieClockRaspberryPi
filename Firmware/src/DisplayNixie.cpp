@@ -1,7 +1,7 @@
 //============================================================================
 // Name        : DisplayNixie.cpp
 // Author      : GRA&AFCH
-// Version     :
+// Version     : 1.2
 // Copyright   : Free
 // Description : Display digits on shields
 //============================================================================
