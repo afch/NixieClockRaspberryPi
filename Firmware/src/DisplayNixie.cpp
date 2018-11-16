@@ -74,6 +74,8 @@ int decToBcd(int val) {
 
 tm addSecondsToDate(tm date, int seconds) {
 	time_t timer = mktime(&date);
+	//puts("timer was");
+	//printf("%ld",timer);
 	timer = timer + seconds;
 	return *(localtime(&timer));
 }
@@ -130,6 +132,7 @@ void initPin(int pin) {
 void funcMode(void) {
 	static unsigned long modeTime = 0;
 	if ((millis() - modeTime) > DEBOUNCE_DELAY) {
+		puts("MODE button was pressed.");
 		resetRTCSecond();
 		modeTime = millis();
 	}
@@ -202,11 +205,12 @@ uint32_t addBlinkTo32Rep(uint32_t var) {
 
 
 int main(int argc, char* argv[]) {
-	if (argc < 2)
+	/*if (argc < 2)
 	{
 		printf("Enter digits to display... or commands: now - present time, clock - loop program");
 		return 0;
-	}
+	}*/
+	puts("Start");
 	wiringPiSetup();
 	//softToneCreate (BUZZER_PIN);
 	//softToneWrite(BUZZER_PIN, 1000);
@@ -218,9 +222,17 @@ int main(int argc, char* argv[]) {
 	initPin(MODE_BUTTON_PIN);
 	wiringPiISR(MODE_BUTTON_PIN,INT_EDGE_RISING,&funcMode);
 	fileDesc = wiringPiI2CSetup(I2CAdress);
+	time_t seconds = time(NULL);
+	tm* timeinfo = localtime (&seconds);
 	date = getRTCDate();
-	if (wiringPiSPISetupMode (0, 2000000, 2)) printf("SPI ok");
-			else {printf("SPI NOT ok"); return 0;}
+	date.tm_mday = timeinfo->tm_mday;
+	date.tm_wday = timeinfo->tm_wday;
+	date.tm_mon = timeinfo->tm_mon+1;
+	date.tm_year = timeinfo->tm_year-100;
+	//puts("Day:");
+	writeRTCDate(date);
+	if (wiringPiSPISetupMode (0, 2000000, 2)) puts("SPI ok");
+			else {puts("SPI NOT ok"); return 0;}
 	long hourDelay = millis();
 	long minuteDelay = hourDelay;
 	do {
@@ -245,10 +257,12 @@ int main(int argc, char* argv[]) {
 		fillBuffer(var32, buff , RIGHT_BUFFER_START);
 
 		if (digitalRead(UP_BUTTON_PIN) == 0 && (millis() - hourDelay) > DEBOUNCE_DELAY) {
+			puts("UP button was pressed.");
 			updateRTCHour(addSecondsToDate(date, HOUR_IN_SECONDS));
 			hourDelay = millis();
 		}
 		if (digitalRead(DOWN_BUTTON_PIN) == 0 && (millis() - minuteDelay) > DEBOUNCE_DELAY) {
+			puts("DOWN button was pressed.");
 			updateRTCMinute(addSecondsToDate(date, MINUTE_IN_SECONDS));
 			minuteDelay = millis();
 		}
