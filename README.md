@@ -29,3 +29,6 @@ https://photos.google.com/album/AF1QipPrdCjy8WkSl1f51m8EP9go7VUFAiGsy_bjW9pH/pho
 Add folder "DisplayNixie" into the workspace of Eclipse:
 "File"->"Import", "Genral"->"Existing Project into Workspce".
 p.s. The project uses the "wiringPi" library: http://wiringpi.com/download-and-install/
+
+        Autorun the program at startup: 
+Edit /etc/rc.local file - add string like this: sudo "/home/pi/Documents/Eclipse Projects/DisplayNixie/Debug/DisplayNixie" clock
