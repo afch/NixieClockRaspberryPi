@@ -31,5 +31,5 @@ Add folder "DisplayNixie" into the workspace of Eclipse:
 p.s. The project uses the "wiringPi" library: http://wiringpi.com/download-and-install/
 
         Autorun the program at startup: 
-Edit /etc/rc.local file - add string like this: 
+Edit /home/pi/.bashrc file - add string like this: 
 sudo "/home/pi/Documents/Eclipse Projects/DisplayNixie/Debug/DisplayNixie" clock
