@@ -1,11 +1,3 @@
-//============================================================================
-// Name        : DisplayNixie.cpp
-// Author      : GRA&AFCH
-// Version     : 1.2
-// Copyright   : Free
-// Description : Display digits on shields
-//============================================================================
-
 #include <iostream>
 #include <wiringPi.h>
 #include <wiringPiSPI.h>
@@ -40,13 +32,8 @@ using namespace std;
 #define BLUE_LIGHT_PIN 29
 #define MAX_POWER 100
 
-#define SECOND_IN_SECONDS 1
-#define MINUTE_IN_SECONDS 60
-#define HOUR_IN_SECONDS 3600
-
 #define UPPER_DOTS_MASK 0x80000000
 #define LOWER_DOTS_MASK 0x40000000
-
 
 #define LEFT_REPR_START 5
 #define LEFT_BUFFER_START 0
@@ -55,7 +42,6 @@ using namespace std;
 
 uint16_t SymbolArray[10]={1, 2, 4, 8, 16, 32, 64, 128, 256, 512};
 
-tm date;
 int fileDesc;
 int redLight = 100;
 int greenLight = 0;
@@ -72,12 +58,16 @@ int decToBcd(int val) {
 	return ((val / 10  * 16) + (val % 10));
 }
 
-tm addSecondsToDate(tm date, int seconds) {
-	time_t timer = mktime(&date);
-	//puts("timer was");
-	//printf("%ld",timer);
-	timer = timer + seconds;
-	return *(localtime(&timer));
+tm addHourToDate(tm date) {
+	date.tm_hour += 1;
+	mktime(&date);
+	return date;
+}
+
+tm addMinuteToDate(tm date) {
+	date.tm_min += 1;
+	mktime(&date);
+	return date;
 }
 
 tm getRTCDate() {
@@ -90,6 +80,7 @@ tm getRTCDate() {
 	date.tm_mday = bcdToDec(wiringPiI2CReadReg8(fileDesc,DAY_REGISTER));
 	date.tm_mon =  bcdToDec(wiringPiI2CReadReg8(fileDesc,MONTH_REGISTER));
 	date.tm_year = bcdToDec(wiringPiI2CReadReg8(fileDesc,YEAR_REGISTER));
+	date.tm_isdst = 0;
 	return date;
 }
 
@@ -138,6 +129,8 @@ void funcMode(void) {
 	}
 }
 
+
+
 uint32_t get32Rep(char * _stringToDisplay, int start) {
 	uint32_t var32 = 0;
 
@@ -148,7 +141,6 @@ uint32_t get32Rep(char * _stringToDisplay, int start) {
 }
 
 void fillBuffer(uint32_t var32, unsigned char * buffer, int start) {
-
 	buffer[start] = var32>>24;
 	buffer[start + 1] = var32>>16;
 	buffer[start + 2] = var32>>8;
@@ -205,12 +197,6 @@ uint32_t addBlinkTo32Rep(uint32_t var) {
 
 
 int main(int argc, char* argv[]) {
-	/*if (argc < 2)
-	{
-		printf("Enter digits to display... or commands: now - present time, clock - loop program");
-		return 0;
-	}*/
-	puts("Start");
 	wiringPiSetup();
 	//softToneCreate (BUZZER_PIN);
 	//softToneWrite(BUZZER_PIN, 1000);
@@ -222,17 +208,24 @@ int main(int argc, char* argv[]) {
 	initPin(MODE_BUTTON_PIN);
 	wiringPiISR(MODE_BUTTON_PIN,INT_EDGE_RISING,&funcMode);
 	fileDesc = wiringPiI2CSetup(I2CAdress);
+
+	tm date = getRTCDate();
 	time_t seconds = time(NULL);
 	tm* timeinfo = localtime (&seconds);
-	date = getRTCDate();
 	date.tm_mday = timeinfo->tm_mday;
 	date.tm_wday = timeinfo->tm_wday;
-	date.tm_mon = timeinfo->tm_mon+1;
-	date.tm_year = timeinfo->tm_year-100;
-	//puts("Day:");
+	date.tm_mon =  timeinfo->tm_mon + 1;
+	date.tm_year = timeinfo->tm_year - 100;
 	writeRTCDate(date);
-	if (wiringPiSPISetupMode (0, 2000000, 2)) puts("SPI ok");
-			else {puts("SPI NOT ok"); return 0;}
+
+	if (wiringPiSPISetupMode (0, 2000000, 2)) {
+		puts("SPI ok");
+	}
+	else {
+		puts("SPI NOT ok");
+		return 0;
+	}
+
 	long hourDelay = millis();
 	long minuteDelay = hourDelay;
 	do {
@@ -243,7 +236,6 @@ int main(int argc, char* argv[]) {
 
 
 		pinMode(LEpin, OUTPUT);
-
 		dotBlink();
 
 		unsigned char buff[8];
@@ -257,15 +249,14 @@ int main(int argc, char* argv[]) {
 		fillBuffer(var32, buff , RIGHT_BUFFER_START);
 
 		if (digitalRead(UP_BUTTON_PIN) == 0 && (millis() - hourDelay) > DEBOUNCE_DELAY) {
-			puts("UP button was pressed.");
-			updateRTCHour(addSecondsToDate(date, HOUR_IN_SECONDS));
+			updateRTCHour(addHourToDate(date));
 			hourDelay = millis();
 		}
 		if (digitalRead(DOWN_BUTTON_PIN) == 0 && (millis() - minuteDelay) > DEBOUNCE_DELAY) {
-			puts("DOWN button was pressed.");
-			updateRTCMinute(addSecondsToDate(date, MINUTE_IN_SECONDS));
+			updateRTCMinute(addMinuteToDate(date));
 			minuteDelay = millis();
 		}
+
 		rotateFireWorks();
 		digitalWrite(LEpin, LOW);
 		wiringPiSPIDataRW(0, buff, 8);
