@@ -1,3 +1,13 @@
+//============================================================================
+// Name        : DisplayNixie.cpp
+// Author      : GRA&AFCH
+// Version     : v1.2
+// Copyright   : Free
+// Description : Display time on shields NCS314 v2.x or NCS312
+//============================================================================
+
+#define _VERSION "1.2"
+
 #include <iostream>
 #include <wiringPi.h>
 #include <wiringPiSPI.h>
@@ -197,6 +207,7 @@ uint32_t addBlinkTo32Rep(uint32_t var) {
 
 
 int main(int argc, char* argv[]) {
+	printf("Nixie Clock v%s \n\r", _VERSION);
 	wiringPiSetup();
 	//softToneCreate (BUZZER_PIN);
 	//softToneWrite(BUZZER_PIN, 1000);
