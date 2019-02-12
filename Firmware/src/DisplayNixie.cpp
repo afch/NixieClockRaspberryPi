@@ -1,12 +1,12 @@
 //============================================================================
 // Name        : DisplayNixie.cpp
 // Author      : GRA&AFCH
-// Version     : v1.2
+// Version     : v1.3
 // Copyright   : Free
 // Description : Display time on shields NCS314 v2.x or NCS312
 //============================================================================
 
-#define _VERSION "1.2"
+#define _VERSION "1.3"
 
 #include <iostream>
 #include <wiringPi.h>
