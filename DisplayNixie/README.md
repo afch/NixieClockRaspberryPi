@@ -49,6 +49,7 @@ NOTE:  Any combination/order of above arguments is allowed.
 ### Autorun the program at startup: 
 
 1) Edit the provided nixie.service template to reflect the full path down to your binary:
+
 NOTE: Fix the path on the following line in nixie.service to match your binary location.
 
   ExecStart=/nixie/NixieClockRaspberryPi-shaner/DisplayNixie/bin/DisplayNixie
