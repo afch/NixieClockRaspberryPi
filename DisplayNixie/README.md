@@ -9,7 +9,7 @@ A simple program that show the current system time at the Nixie tubes.
 
   1) Use the system RTC by default (e.g. rely on NTP for more accurate time).
   2) Option to display 12-hour or 24-hour for the hour digits.
-  3) Repurpose MODE button to toggle fireworks on/on.
+  3) Repurpose MODE button to toggle fireworks on/off.
   4) Repurpose UP/DOWN buttons to increase/decrease the fireworks cycle speed.
   5) Command-line parsing to choose preferred options without recompile.
   6) Re-wrote makefile for proper handling of binary rebuild any time the sources are modified.
