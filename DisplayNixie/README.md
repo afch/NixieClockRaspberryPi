@@ -27,8 +27,9 @@ A simple program that show the current system time at the Nixie tubes.
   2.1) or CLI way "sudo raspi-config": https://photos.app.goo.gl/wfoPd8CNLSlJ0bF83
 
   3) cd into .../DisplayNixie/src
-  4) Run 'make'
-  5) Binary will be placed at .../DisplayNixie/bin/DisplayNixie, a la:
+  4) mkdir ../bin (make will fail if bin folder does not exist)
+  5) Run 'make'
+  6) Binary will be placed at .../DisplayNixie/bin/DisplayNixie, a la:
 	/nixie/NixieClockRaspberryPi-shaner/DisplayNixie/bin/DisplayNixie
 
 ### Сommand line options (shaner mods):
