@@ -23,6 +23,8 @@ https://photos.google.com/album/AF1QipPrdCjy8WkSl1f51m8EP9go7VUFAiGsy_bjW9pH/pho
 1) 123456 - any 6 digits. Shield will display these numbers.
 2) now - Shield will display current system time at the time the command is executed.
 3) clock - the program will loop and will update every second the time from Real Time Clock (RTC on shield board) on tubes.
+4) settime x - set time, where x time in format [hh:mm:ss].
+5) setsystime - set current time from OS.
 Example: "sudo /home/pi/Downloads/NixieClockRaspberryPi-master/CLITool/Debug/CLITool 123456" - will show 123456 on tubes.
 
         To compile the source: 
