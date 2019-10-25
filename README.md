@@ -1,5 +1,6 @@
 # NixieClockRaspberryPi
-Simple Nixie Tubes Clock Based on RaspberryPi, adapter and NCS314 shield for Arduino (by GRA and AFCH)
+Simple Nixie Tubes Clock Based on RaspberryPi, adapter and NCS314 shield for Arduino (by GRA and AFCH).
+
 A simple program that show the current time (stored in shield's onboard RTC) at Nixie tubes.
 
 (Enhanced mod by Leon Shaner available here: https://github.com/UberEclectic/NixieClockRaspberryPi/tree/master/DisplayNixie)
