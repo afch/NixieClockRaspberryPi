@@ -12,7 +12,7 @@ A simple program that show the current system time at the Nixie tubes.
 
 1) Download and unzip.
 2) Set execute permission "Anyone" to "DisplayNixie" file: https://photos.app.goo.gl/yVWtZkcIU9afhsvI2
-3) Enable SPI module in the "Raspberry Pi Configuration": https://photos.app.goo.gl/vH7DtG9nwMzJHwvP2
+3) Enable SPI and I2C modules in the "Raspberry Pi Configuration": https://photos.app.goo.gl/vH7DtG9nwMzJHwvP2
   3.1) or CLI way "sudo raspi-config": https://photos.app.goo.gl/wfoPd8CNLSlJ0bF83
 4) Run the program "sudo /home/pi/Downloads/NixieClockRaspberryPi-master/Bin/DisplayNixie clock" : 
 https://photos.google.com/album/AF1QipPrdCjy8WkSl1f51m8EP9go7VUFAiGsy_bjW9pH/photo/AF1QipPch7Yz6RWZKBhiU_U8SIZtXHFvxyfVzh27Byjp
