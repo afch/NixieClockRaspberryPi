@@ -1,12 +1,12 @@
 //============================================================================
 // Name        : DisplayNixie.cpp
 // Author      : GRA&AFCH
-// Version     : v1.2
+// Version     : v2.3
 // Copyright   : Free
 // Description : Display time on shields NCS314 v2.x or NCS312
 //============================================================================
 
-#define _VERSION "1.2"
+#define _VERSION "2.3"
 
 #include <iostream>
 #include <wiringPi.h>
@@ -18,6 +18,8 @@
 #include <softPwm.h>
 
 using namespace std;
+#define R5222_PIN 22
+bool HV5222;
 #define LEpin 3
 #define UP_BUTTON_PIN 1
 #define DOWN_BUTTON_PIN 4
@@ -205,6 +207,8 @@ uint32_t addBlinkTo32Rep(uint32_t var) {
 	return var;
 }
 
+//uint64_t* reverseBit(uint64_t num);
+uint64_t reverseBit(uint64_t num);
 
 int main(int argc, char* argv[]) {
 	printf("Nixie Clock v%s \n\r", _VERSION);
@@ -217,7 +221,7 @@ int main(int argc, char* argv[]) {
 	initPin(UP_BUTTON_PIN);
 	initPin(DOWN_BUTTON_PIN);
 	initPin(MODE_BUTTON_PIN);
-	wiringPiISR(MODE_BUTTON_PIN,INT_EDGE_RISING,&funcMode);
+	//wiringPiISR(MODE_BUTTON_PIN,INT_EDGE_RISING,&funcMode);
 	fileDesc = wiringPiI2CSetup(I2CAdress);
 
 	tm date = getRTCDate();
@@ -237,8 +241,15 @@ int main(int argc, char* argv[]) {
 		return 0;
 	}
 
+	pinMode(R5222_PIN, INPUT);
+	pullUpDnControl(R5222_PIN, PUD_UP);
+	HV5222=!digitalRead(R5222_PIN);
+	if (HV5222) puts("R52222 resistor detected. HV5222 algorithm is used.");
+	uint64_t reverseBuffValue;
+
 	long hourDelay = millis();
 	long minuteDelay = hourDelay;
+	long modeDelay = hourDelay;
 	do {
 		char _stringToDisplay[8];
 		date = getRTCDate();
@@ -253,10 +264,12 @@ int main(int argc, char* argv[]) {
 
 		uint32_t var32 = get32Rep(_stringToDisplay, LEFT_REPR_START);
 		var32 = addBlinkTo32Rep(var32);
+
 		fillBuffer(var32, buff , LEFT_BUFFER_START);
 
 		var32 = get32Rep(_stringToDisplay, RIGHT_REPR_START);
 		var32 = addBlinkTo32Rep(var32);
+
 		fillBuffer(var32, buff , RIGHT_BUFFER_START);
 
 		if (digitalRead(UP_BUTTON_PIN) == 0 && (millis() - hourDelay) > DEBOUNCE_DELAY) {
@@ -267,13 +280,44 @@ int main(int argc, char* argv[]) {
 			updateRTCMinute(addMinuteToDate(date));
 			minuteDelay = millis();
 		}
+		if (digitalRead(MODE_BUTTON_PIN) == 0 && (millis() - modeDelay) > DEBOUNCE_DELAY) {
+			resetRTCSecond();
+			modeDelay = millis();
+		}
 
 		rotateFireWorks();
 		digitalWrite(LEpin, LOW);
+
+		if (HV5222)
+		{
+			reverseBuffValue=reverseBit(*(uint64_t*)buff);
+			buff[4]=reverseBuffValue;
+			buff[5]=reverseBuffValue>>8;
+			buff[6]=reverseBuffValue>>16;
+			buff[7]=reverseBuffValue>>24;
+			buff[0]=reverseBuffValue>>32;
+			buff[1]=reverseBuffValue>>40;
+			buff[2]=reverseBuffValue>>48;
+			buff[3]=reverseBuffValue>>56;
+		}
+
 		wiringPiSPIDataRW(0, buff, 8);
 		digitalWrite(LEpin, HIGH);
 		delay (TOTAL_DELAY);
 	}
 	while (true);
 	return 0;
+}
+
+//uint64_t* reverseBit(uint64_t num)
+uint64_t reverseBit(uint64_t num)
+{
+	uint64_t reverse_num=0;
+	int i;
+	for (i=0; i<64; i++)
+	{
+		if ((num & ((uint64_t)1<<i)))
+			reverse_num = reverse_num | ((uint64_t)1<<(63-i));
+	}
+	return reverse_num;
 }
