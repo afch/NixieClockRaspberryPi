@@ -60,6 +60,7 @@ NOTE: Fix the path on the following line in nixie.service to match your binary l
 
 3) Reload the systemd state and start the nixie service:
 *  $ sudo systemctl daemon-reload
+*  $ sudo systemctl enable nixie
 *  $ sudo systemctl start nixie
 
 NOTE:  The systemd will auto-start DisplayNixie whenever the system is booted.
