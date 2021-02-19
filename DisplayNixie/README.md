@@ -2,8 +2,9 @@
 ## With mods by Leon Shaner
 
 Simple Nixie Tubes Clock Based on RaspberryPi, adapter and NCS314 shield for Arduino (by GRA and AFCH)
-
 A simple program that show the current system time at the Nixie tubes.
+
+NOTE: Works with NCS314 v2.x or NCS312; has not been tested with newer models (as of 19 February 2021).
 
 ### Major features of the Shaner mods:
 
@@ -27,9 +28,8 @@ A simple program that show the current system time at the Nixie tubes.
   2.1) or CLI way "sudo raspi-config": https://photos.app.goo.gl/wfoPd8CNLSlJ0bF83
 
   3) cd into .../DisplayNixie/src
-  4) mkdir ../bin (make will fail if bin folder does not exist)
-  5) Run 'make'
-  6) Binary will be placed at .../DisplayNixie/bin/DisplayNixie, a la:
+  4) Run 'make'
+  5) Binary will be placed at .../DisplayNixie/bin/DisplayNixie, a la:
 	/nixie/NixieClockRaspberryPi-shaner/DisplayNixie/bin/DisplayNixie
 
 ### Сommand line options (shaner mods):
