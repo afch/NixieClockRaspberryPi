@@ -1,12 +1,13 @@
 //============================================================================
 // Name        : DisplayNixie.cpp
 // Author      : GRA&AFCH
-// Version     : v2.3
+// Version     : v1.0
 // Copyright   : Free
-// Description : Display time on shields NCS314 v2.x or NCS312
+// Description : Display time on shields NCS314 v3.x
+// Date		   : 27.04.2020
 //============================================================================
 
-#define _VERSION "2.3"
+#define _VERSION "1.0 for NCS314 HW Version 3.x"
 
 #include <iostream>
 #include <wiringPi.h>
@@ -16,11 +17,16 @@
 #include <wiringPiI2C.h>
 #include <softTone.h>
 #include <softPwm.h>
+#include <math.h>
+
+#define bitRead(value, bit) (((value) >> (bit)) & 0x01)
+#define bitSet(value, bit) ((value) |= (1UL << (bit)))
+#define bitClear(value, bit) ((value) &= ~(1UL << (bit)))
+#define bitWrite(value, bit, bitvalue) (bitvalue ? bitSet(value, bit) : bitClear(value, bit))
 
 using namespace std;
-#define R5222_PIN 22
-bool HV5222;
 #define LEpin 3
+#define SHDNpin 2
 #define UP_BUTTON_PIN 1
 #define DOWN_BUTTON_PIN 4
 #define MODE_BUTTON_PIN 5
@@ -141,24 +147,6 @@ void funcMode(void) {
 	}
 }
 
-
-
-uint32_t get32Rep(char * _stringToDisplay, int start) {
-	uint32_t var32 = 0;
-
-	var32= (SymbolArray[_stringToDisplay[start]-0x30])<<20;
-	var32|=(SymbolArray[_stringToDisplay[start - 1]-0x30])<<10;
-	var32|=(SymbolArray[_stringToDisplay[start - 2]-0x30]);
-	return var32;
-}
-
-void fillBuffer(uint32_t var32, unsigned char * buffer, int start) {
-	buffer[start] = var32>>24;
-	buffer[start + 1] = var32>>16;
-	buffer[start + 2] = var32>>8;
-	buffer[start + 3] = var32;
-}
-
 void dotBlink()
 {
 	static unsigned int lastTimeBlink=millis();
@@ -170,7 +158,7 @@ void dotBlink()
 	}
 }
 
-void rotateFireWorks() {
+/*void rotateFireWorks() {
 	int fireworks[] = {0,0,1,
 					  -1,0,0,
 			           0,1,0,
@@ -191,7 +179,25 @@ void rotateFireWorks() {
 	}
 	if (rotator > 5)
 		rotator = 0;
+}*/
+
+uint32_t get32Rep(char * _stringToDisplay, int start) {
+	uint32_t var32 = 0;
+
+	var32= (SymbolArray[_stringToDisplay[start]-0x30])<<20;
+	var32|=(SymbolArray[_stringToDisplay[start - 1]-0x30])<<10;
+	var32|=(SymbolArray[_stringToDisplay[start - 2]-0x30]);
+	return var32;
 }
+
+void fillBuffer(uint32_t var32, unsigned char * buffer, int start) {
+
+	buffer[start] = var32>>24;
+	buffer[start + 1] = var32>>16;
+	buffer[start + 2] = var32>>8;
+	buffer[start + 3] = var32;
+}
+
 
 uint32_t addBlinkTo32Rep(uint32_t var) {
 	if (dotState)
@@ -207,8 +213,8 @@ uint32_t addBlinkTo32Rep(uint32_t var) {
 	return var;
 }
 
-//uint64_t* reverseBit(uint64_t num);
-uint64_t reverseBit(uint64_t num);
+char _stringToDisplay[8];
+void doIndication();
 
 int main(int argc, char* argv[]) {
 	printf("Nixie Clock v%s \n\r", _VERSION);
@@ -221,7 +227,7 @@ int main(int argc, char* argv[]) {
 	initPin(UP_BUTTON_PIN);
 	initPin(DOWN_BUTTON_PIN);
 	initPin(MODE_BUTTON_PIN);
-	//wiringPiISR(MODE_BUTTON_PIN,INT_EDGE_RISING,&funcMode);
+	wiringPiISR(MODE_BUTTON_PIN,INT_EDGE_RISING,&funcMode);
 	fileDesc = wiringPiI2CSetup(I2CAdress);
 
 	tm date = getRTCDate();
@@ -233,7 +239,7 @@ int main(int argc, char* argv[]) {
 	date.tm_year = timeinfo->tm_year - 100;
 	writeRTCDate(date);
 
-	if (wiringPiSPISetupMode (0, 2000000, 2)) {
+	if (wiringPiSPISetupMode (0, 2000000, 3)) {
 		puts("SPI ok");
 	}
 	else {
@@ -241,17 +247,13 @@ int main(int argc, char* argv[]) {
 		return 0;
 	}
 
-	pinMode(R5222_PIN, INPUT);
-	pullUpDnControl(R5222_PIN, PUD_UP);
-	HV5222=!digitalRead(R5222_PIN);
-	if (HV5222) puts("R52222 resistor detected. HV5222 algorithm is used.");
-	uint64_t reverseBuffValue;
+	pinMode(SHDNpin, OUTPUT);
+	digitalWrite(SHDNpin, HIGH); //HIGH = ON
 
 	long hourDelay = millis();
 	long minuteDelay = hourDelay;
-	long modeDelay = hourDelay;
 	do {
-		char _stringToDisplay[8];
+		//char _stringToDisplay[8];
 		date = getRTCDate();
 		char* format ="%H%M%S";
 		strftime(_stringToDisplay, 8, format, &date);
@@ -260,17 +262,7 @@ int main(int argc, char* argv[]) {
 		pinMode(LEpin, OUTPUT);
 		dotBlink();
 
-		unsigned char buff[8];
-
-		uint32_t var32 = get32Rep(_stringToDisplay, LEFT_REPR_START);
-		var32 = addBlinkTo32Rep(var32);
-
-		fillBuffer(var32, buff , LEFT_BUFFER_START);
-
-		var32 = get32Rep(_stringToDisplay, RIGHT_REPR_START);
-		var32 = addBlinkTo32Rep(var32);
-
-		fillBuffer(var32, buff , RIGHT_BUFFER_START);
+		doIndication();
 
 		if (digitalRead(UP_BUTTON_PIN) == 0 && (millis() - hourDelay) > DEBOUNCE_DELAY) {
 			updateRTCHour(addHourToDate(date));
@@ -280,44 +272,102 @@ int main(int argc, char* argv[]) {
 			updateRTCMinute(addMinuteToDate(date));
 			minuteDelay = millis();
 		}
-		if (digitalRead(MODE_BUTTON_PIN) == 0 && (millis() - modeDelay) > DEBOUNCE_DELAY) {
-			resetRTCSecond();
-			modeDelay = millis();
-		}
 
-		rotateFireWorks();
-		digitalWrite(LEpin, LOW);
+//		rotateFireWorks();
 
-		if (HV5222)
-		{
-			reverseBuffValue=reverseBit(*(uint64_t*)buff);
-			buff[4]=reverseBuffValue;
-			buff[5]=reverseBuffValue>>8;
-			buff[6]=reverseBuffValue>>16;
-			buff[7]=reverseBuffValue>>24;
-			buff[0]=reverseBuffValue>>32;
-			buff[1]=reverseBuffValue>>40;
-			buff[2]=reverseBuffValue>>48;
-			buff[3]=reverseBuffValue>>56;
-		}
-
-		wiringPiSPIDataRW(0, buff, 8);
-		digitalWrite(LEpin, HIGH);
 		delay (TOTAL_DELAY);
 	}
 	while (true);
 	return 0;
 }
 
-//uint64_t* reverseBit(uint64_t num)
-uint64_t reverseBit(uint64_t num)
+
+#define UpperDotsMask 0x80000000
+#define LowerDotsMask 0x40000000
+
+void doIndication()
 {
-	uint64_t reverse_num=0;
-	int i;
-	for (i=0; i<64; i++)
-	{
-		if ((num & ((uint64_t)1<<i)))
-			reverse_num = reverse_num | ((uint64_t)1<<(63-i));
-	}
-	return reverse_num;
+
+  unsigned long Var32=0;
+  unsigned long New32_L=0;
+  unsigned long New32_H=0;
+  unsigned char buff[8];
+
+  long digits=atoi(_stringToDisplay);
+
+  /**********************************************************
+   * Data format incomin [H1][H2][M1][M2][S1][S2]
+   *********************************************************/
+
+ //-------- REG 1 -----------------------------------------------
+  Var32=0;
+
+  Var32|=(unsigned long)(SymbolArray[digits%10])<<20; // s2
+  digits=digits/10;
+
+  Var32|=(unsigned long)(SymbolArray[digits%10])<<10; //s1
+  digits=digits/10;
+
+  Var32|=(unsigned long)(SymbolArray[digits%10]); //m2
+  digits=digits/10;
+
+  if (dotState) Var32|=LowerDotsMask;
+    else  Var32&=~LowerDotsMask;
+
+  if (dotState) Var32|=UpperDotsMask;
+    else Var32&=~UpperDotsMask;
+
+  for (int i=1; i<=32; i++)
+  {
+   i=i+32;
+   int newindex=16*(3-(ceil((float)i/4)*4-i))+ceil((float)i/4);
+   i=i-32;
+   if (newindex<=32) bitWrite(New32_L, newindex-1, bitRead(Var32, i-1));
+    else bitWrite(New32_H, newindex-32-1, bitRead(Var32, i-1));
+  }
+ //-------------------------------------------------------------------------
+
+ //-------- REG 0 -----------------------------------------------
+  Var32=0;
+
+  Var32|=(unsigned long)(SymbolArray[digits%10])<<20; // m1
+  digits=digits/10;
+
+  Var32|= (unsigned long)(SymbolArray[digits%10])<<10; //h2
+  digits=digits/10;
+
+  Var32|= (unsigned long)SymbolArray[digits%10]; //h1
+  digits=digits/10;
+
+  if (dotState) Var32|=LowerDotsMask;
+    else  Var32&=~LowerDotsMask;
+
+  if (dotState) Var32|=UpperDotsMask;
+    else Var32&=~UpperDotsMask;
+
+  for (int i=1; i<=32; i++)
+  {
+   int newindex=16*(3-(ceil((float)i/4)*4-i))+ceil((float)i/4);
+   if (newindex<=32) bitWrite(New32_L, newindex-1, bitRead(Var32, i-1));
+    else bitWrite(New32_H, newindex-32-1, bitRead(Var32, i-1));
+  }
+
+  buff[0] = New32_H>>24;
+  buff[1] = New32_H>>16;
+  buff[2] = New32_H>>8;
+  buff[3] = New32_H;
+
+  buff[4] = New32_L>>24;
+  buff[5] = New32_L>>16;
+  buff[6] = New32_L>>8;
+  buff[7] = New32_L;
+
+  wiringPiSPIDataRW(0, buff, 8);
+
+  digitalWrite(LEpin, HIGH); // <<-- H -> L
+
+  digitalWrite(LEpin, LOW); //<<--  H -> L
+
+//-------------------------------------------------------------------------
 }
+
