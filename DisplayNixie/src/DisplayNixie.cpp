@@ -16,6 +16,7 @@
 #include <wiringPiI2C.h>
 #include <softTone.h>
 #include <softPwm.h>
+#include <signal.h>
 
 using namespace std;
 #define R5222_PIN 22
@@ -53,7 +54,6 @@ bool HV5222;
 #define LEFT_BUFFER_START 0
 #define RIGHT_REPR_START 2
 #define RIGHT_BUFFER_START 4
-
 
 uint16_t SymbolArray[10]={1, 2, 4, 8, 16, 32, 64, 128, 256, 512};
 
@@ -285,10 +285,26 @@ uint32_t addBlinkTo32Rep(uint32_t var) {
 	return var;
 }
 
+// Interrupt handler to turn off Nixie upon SIGINT(2), SIGQUIT(3), SIGTERM(15), but not SIGKILL(9)
+void signal_handler (int sig_received)
+{
+	printf("Received Signal %d; Exiting.\n", sig_received);
+	resetFireWorks();
+	digitalWrite(LEpin, LOW);
+	wiringPiI2CWrite(fileDesc, I2CFlush);
+	exit(sig_received);
+}
+
 //uint64_t* reverseBit(uint64_t num);
 uint64_t reverseBit(uint64_t num);
 
 int main(int argc, char* argv[]) {
+
+	// Setup signal handlers
+  	signal(SIGINT, signal_handler);
+  	signal(SIGQUIT, signal_handler);
+  	signal(SIGTERM, signal_handler);
+
 	printf("Nixie Clock v%s \n\r", _VERSION);
 
 	wiringPiSetup();
@@ -341,9 +357,9 @@ int main(int argc, char* argv[]) {
 
 // Tell the user the fireworks mode
 	if (doFireworks)
-		puts("Firworks ENABLED at start.");
+		puts("Fireworks ENABLED at start.");
 	else
-		puts("Firworks DISABLED at start.");
+		puts("Fireworks DISABLED at start.");
 
 // Further setup...
 	initPin(UP_BUTTON_PIN);
