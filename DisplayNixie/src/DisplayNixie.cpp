@@ -289,9 +289,10 @@ uint32_t addBlinkTo32Rep(uint32_t var) {
 void signal_handler (int sig_received)
 {
 	printf("Received Signal %d; Exiting.\n", sig_received);
-	resetFireWorks();
+	digitalWrite(RED_LIGHT_PIN, LOW);
+	digitalWrite(GREEN_LIGHT_PIN, LOW);
+	digitalWrite(BLUE_LIGHT_PIN, LOW);
 	digitalWrite(LEpin, LOW);
-	wiringPiI2CWrite(fileDesc, I2CFlush);
 	exit(sig_received);
 }
 
