@@ -1,0 +1,15 @@
+
+[Unit]
+Description=nixie clock
+After=network.target
+
+[Service]
+ExecStart=/nixie/NixieClockRaspberryPi-shaner/DisplayNixie/bin/DisplayNixie
+WorkingDirectory=/tmp
+StandardOutput=inherit
+StandardError=inherit
+Restart=always
+User=pi
+
+[Install]
+WantedBy=multi-user.target
