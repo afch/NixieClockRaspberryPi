@@ -1,5 +1,5 @@
 # NixieClockRaspberryPi
-Simple Nixie Tubes Clock Based on RaspberryPi, adapter and NCS314 shield for Arduino (by GRA and AFCH).
+Simple Nixie Tubes Clock Based on RaspberryPi, adapter and NCS314 or NCS318 shield for Arduino (by GRA and AFCH).
 
 A simple program that show the current time (stored in shield's onboard RTC) at Nixie tubes.
 
@@ -8,7 +8,7 @@ A simple program that show the current time (stored in shield's onboard RTC) at 
     Requared hardware:
   1) Raspberry Pi any models with 40-pin GPIO connector (Except A and B models).
   2) Arduino to Raspberry Pi adapter (by GRA & AFCH): https://gra-afch.com/catalog/shield-nixie-clock-for-arduino/raspberry-pi-shield-nixie-tubes-clock-ncs314-for-in-14-nixie-tubes-options-tubes-gps-remote-arduino-columns-copy/
-  3) Arduino Nixie Clock Shield NCS314 (v1.2, v2.x): https://gra-afch.com/catalog/shield-nixie-clock-for-arduino/nixie-tubes-clock-arduino-shield-ncs314-for-xussr-in-14-nixie-tubes/
+  3) Arduino Nixie Clock Shield NCS314 (v1.2, v2.x, v3.x) or NCS318: https://gra-afch.com/catalog/shield-nixie-clock-for-arduino/nixie-tubes-clock-arduino-shield-ncs314-for-xussr-in-14-nixie-tubes/
 
     How to use binaries:
 
