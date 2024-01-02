@@ -1,12 +1,12 @@
 //============================================================================
 // Name        : DisplayNixie.cpp
 // Author      : GRA&AFCH
-// Version     : v2.3
+// Version     : v2.3.1
 // Copyright   : Free
 // Description : Display time on shields NCS314 v2.x or NCS312
 //============================================================================
 
-#define _VERSION "2.3"
+#define _VERSION "2.3.1"
 
 #include <iostream>
 #include <wiringPi.h>
@@ -25,7 +25,9 @@ bool HV5222;
 #define DOWN_BUTTON_PIN 4
 #define MODE_BUTTON_PIN 5
 #define BUZZER_PIN 0
-#define I2CAdress 0x68
+#define DS1307_ADDRESS 0x68
+#define RV_3028_ADDRESS 0x52
+uint8_t RTC_Address;
 #define I2CFlush 0
 
 #define DEBOUNCE_DELAY 150
@@ -209,6 +211,50 @@ uint32_t addBlinkTo32Rep(uint32_t var) {
 
 //uint64_t* reverseBit(uint64_t num);
 uint64_t reverseBit(uint64_t num);
+void RTC_Test()
+{
+  uint8_t errorCounter = 0;
+  int8_t DS3231InternalTemperature = 0;
+  RTC_Address = DS1307_ADDRESS;
+  fileDesc = wiringPiI2CSetup(RTC_Address);
+
+  DS3231InternalTemperature = wiringPiI2CReadReg16(fileDesc, 0x11);
+  wiringPiI2CWrite(fileDesc, I2CFlush);
+
+  printf("DS3231_T=%i\n\r", DS3231InternalTemperature);
+  if ((DS3231InternalTemperature < 5) || (DS3231InternalTemperature > 60))
+  {
+	errorCounter++;
+	RTC_Address = RV_3028_ADDRESS;
+  }
+
+  fileDesc = wiringPiI2CSetup(RTC_Address);
+
+  if (wiringPiI2CReadReg8(fileDesc, 28) <= 0)
+  {
+	errorCounter++;
+  }
+
+  if (errorCounter == 2)
+  {
+	puts("Faulty RTC!");
+	return;
+  }
+
+  wiringPiI2CWrite(fileDesc, 0x0F);
+  wiringPiI2CWrite(fileDesc, 0x08);
+  wiringPiI2CWrite(fileDesc, 0x37);
+  wiringPiI2CWrite(fileDesc, 0x1C);
+  wiringPiI2CWrite(fileDesc, 0x27);
+  wiringPiI2CWrite(fileDesc, 0x00);
+  wiringPiI2CWrite(fileDesc, 0x27);
+  wiringPiI2CWrite(fileDesc, 0x11);
+  wiringPiI2CWrite(fileDesc, 0x0F);
+  wiringPiI2CWrite(fileDesc, 0x00);
+  wiringPiI2CWrite(fileDesc, 0x0E);
+  wiringPiI2CWrite(fileDesc, 0x00);
+
+}
 
 int main(int argc, char* argv[]) {
 	printf("Nixie Clock v%s \n\r", _VERSION);
@@ -222,7 +268,8 @@ int main(int argc, char* argv[]) {
 	initPin(DOWN_BUTTON_PIN);
 	initPin(MODE_BUTTON_PIN);
 	//wiringPiISR(MODE_BUTTON_PIN,INT_EDGE_RISING,&funcMode);
-	fileDesc = wiringPiI2CSetup(I2CAdress);
+	RTC_Test();
+	fileDesc = wiringPiI2CSetup(RTC_Address);
 
 	tm date = getRTCDate();
 	time_t seconds = time(NULL);
@@ -256,6 +303,7 @@ int main(int argc, char* argv[]) {
 		char* format ="%H%M%S";
 		strftime(_stringToDisplay, 8, format, &date);
 
+		//printf("string=%s", _stringToDisplay);
 
 		pinMode(LEpin, OUTPUT);
 		dotBlink();
