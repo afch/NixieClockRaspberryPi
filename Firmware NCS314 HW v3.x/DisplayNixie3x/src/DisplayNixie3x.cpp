@@ -7,7 +7,7 @@
 // Date		   : 27.04.2020
 //============================================================================
 
-#define _VERSION "1.0 for NCS314 HW Version 3.x"
+#define _VERSION "1.1 for NCS314 HW Version 3.x"
 
 #include <iostream>
 #include <wiringPi.h>
@@ -31,7 +31,9 @@ using namespace std;
 #define DOWN_BUTTON_PIN 4
 #define MODE_BUTTON_PIN 5
 #define BUZZER_PIN 0
-#define I2CAdress 0x68
+#define DS1307_ADDRESS 0x68
+#define RV_3028_ADDRESS 0x52
+uint8_t RTC_Address;
 #define I2CFlush 0
 
 #define DEBOUNCE_DELAY 150
@@ -216,6 +218,51 @@ uint32_t addBlinkTo32Rep(uint32_t var) {
 char _stringToDisplay[8];
 void doIndication();
 
+void RTC_Test()
+{
+  uint8_t errorCounter = 0;
+  int8_t DS3231InternalTemperature = 0;
+  RTC_Address = DS1307_ADDRESS;
+  fileDesc = wiringPiI2CSetup(RTC_Address);
+
+  DS3231InternalTemperature = wiringPiI2CReadReg16(fileDesc, 0x11);
+  wiringPiI2CWrite(fileDesc, I2CFlush);
+
+  printf("DS3231_T=%i\n\r", DS3231InternalTemperature);
+  if ((DS3231InternalTemperature < 5) || (DS3231InternalTemperature > 60))
+  {
+	errorCounter++;
+	RTC_Address = RV_3028_ADDRESS;
+  }
+
+  fileDesc = wiringPiI2CSetup(RTC_Address);
+
+  if (wiringPiI2CReadReg8(fileDesc, 28) <= 0)
+  {
+	errorCounter++;
+  }
+
+  if (errorCounter == 2)
+  {
+	puts("Faulty RTC!");
+	return;
+  }
+
+  wiringPiI2CWrite(fileDesc, 0x0F);
+  wiringPiI2CWrite(fileDesc, 0x08);
+  wiringPiI2CWrite(fileDesc, 0x37);
+  wiringPiI2CWrite(fileDesc, 0x1C);
+  wiringPiI2CWrite(fileDesc, 0x27);
+  wiringPiI2CWrite(fileDesc, 0x00);
+  wiringPiI2CWrite(fileDesc, 0x27);
+  wiringPiI2CWrite(fileDesc, 0x11);
+  wiringPiI2CWrite(fileDesc, 0x0F);
+  wiringPiI2CWrite(fileDesc, 0x00);
+  wiringPiI2CWrite(fileDesc, 0x0E);
+  wiringPiI2CWrite(fileDesc, 0x00);
+
+}
+
 int main(int argc, char* argv[]) {
 	printf("Nixie Clock v%s \n\r", _VERSION);
 	wiringPiSetup();
@@ -228,7 +275,8 @@ int main(int argc, char* argv[]) {
 	initPin(DOWN_BUTTON_PIN);
 	initPin(MODE_BUTTON_PIN);
 	wiringPiISR(MODE_BUTTON_PIN,INT_EDGE_RISING,&funcMode);
-	fileDesc = wiringPiI2CSetup(I2CAdress);
+	RTC_Test();
+	fileDesc = wiringPiI2CSetup(RTC_Address);
 
 	tm date = getRTCDate();
 	time_t seconds = time(NULL);
@@ -239,7 +287,7 @@ int main(int argc, char* argv[]) {
 	date.tm_year = timeinfo->tm_year - 100;
 	writeRTCDate(date);
 
-	if (wiringPiSPISetupMode (0, 2000000, 3)) {
+	if (wiringPiSPISetupMode (0, 500000, 3)) { // 1 - Arduino Photo, 3 - Production
 		puts("SPI ok");
 	}
 	else {
@@ -288,12 +336,16 @@ int main(int argc, char* argv[]) {
 void doIndication()
 {
 
+//	digitalWrite(LEpin, LOW); //<<--  H -> L
+  //dotState=false; //delete
   unsigned long Var32=0;
   unsigned long New32_L=0;
   unsigned long New32_H=0;
   unsigned char buff[8];
 
-  long digits=atoi(_stringToDisplay);
+  long digits=atoi(_stringToDisplay); //uncomment
+  //digits=235640; //delete
+
 
   /**********************************************************
    * Data format incomin [H1][H2][M1][M2][S1][S2]
@@ -362,12 +414,34 @@ void doIndication()
   buff[6] = New32_L>>8;
   buff[7] = New32_L;
 
+
+  /*buff[0] = 0;
+    buff[1] = 0;
+    buff[2] = 0;
+    buff[3] = 0;
+
+    buff[4] = 0;
+    buff[5] = 0;
+    buff[6] = 0;
+    buff[7] = 0;*/
+  //digitalWrite(LEpin, LOW); //<<--  H -> L
+
   wiringPiSPIDataRW(0, buff, 8);
 
   digitalWrite(LEpin, HIGH); // <<-- H -> L
 
+  int x;  //delete
+  for (int i=0; i<23; i++)
+	  {
+	  	  x=sin(i);
+	  }
+  x+x+1;
+
   digitalWrite(LEpin, LOW); //<<--  H -> L
 
+  delay(20);
+
+  //while(1);
 //-------------------------------------------------------------------------
 }
 

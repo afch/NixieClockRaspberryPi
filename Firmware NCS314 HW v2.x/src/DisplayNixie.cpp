@@ -1,7 +1,7 @@
 //============================================================================
 // Name        : DisplayNixie.cpp
 // Author      : GRA&AFCH
-// Version     : v2.3.1
+// Version     : v2.3
 // Copyright   : Free
 // Description : Display time on shields NCS314 v2.x or NCS312
 //============================================================================
